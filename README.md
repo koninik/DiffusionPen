@@ -11,9 +11,8 @@
   </b>
 </p> 
 
-<p align="center">
-  ## 🚧 Repo Under Construction 🚧
-</p>
+## 🚧 Repo Under Construction 🚧
+
 
 ## 📢 Introduction
 
