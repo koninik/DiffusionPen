@@ -27,7 +27,7 @@
 
 ## 🚀 Models on Hugging Face
 
-You can explore and use the DiffusionPen models on Hugging Face by clicking the HF logo: <a href="https://huggingface.co/konnik/DiffusionPen"><img src="imgs/hf-logo.png" alt="Hugging Face" style="width: 25px; vertical-align: middle;"></a>.
+You can explore and use the DiffusionPen models on Hugging Face by clicking the HF logo: <a href="https://huggingface.co/konnik/DiffusionPen"><img src="imgs/hf-logo.png" alt="Hugging Face" style="width: 25px; vertical-align: middle; display: inline;"></a>.
 
 ---
 
