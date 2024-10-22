@@ -29,7 +29,7 @@
 
 <p align="center">
   <a href="https://huggingface.co/konnik/DiffusionPen">
-    <img src="path_to_huggingface_logo.png" alt="Hugging Face" style="width: 150px;">
+    <img src="imgs/hf-logo.png" alt="Hugging Face" style="width: 150px;">
   </a>
 </p>
 
