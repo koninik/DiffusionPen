@@ -27,6 +27,26 @@
 ## 🚀 Models on Hugging Face 🤗
 You can use the DiffusionPen models on Hugging Face by clicking here: <a href="https://huggingface.co/konnik/DiffusionPen">https://huggingface.co/konnik/DiffusionPen</a> 
 
+## Training from scratch
+
+To train the diffusion model run:
+```
+python train.py 
+```
+
+## Sampling - Regenerating IAM
+
+If you want to regenerate the full IAM training set you can run:
+```
+python 
+```
+
+## Sampling - Single image
+
+If you want to generate a single word with a random style you can run:
+```
+python sampling.py 
+```
 
 ---
 
