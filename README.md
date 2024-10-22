@@ -17,7 +17,7 @@
 
 
 <p align="center">
-  <img src="imgs/diffusionpen.png" alt="Overview of the proposed DiffusionPen" style="width: 80%;">
+  <img src="imgs/diffusionpen.png" alt="Overview of the proposed DiffusionPen" style="width: 60%;">
 </p>
 
 <p align="center">
