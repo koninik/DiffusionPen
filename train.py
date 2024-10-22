@@ -361,7 +361,7 @@ def train(diffusion, model, ema, ema_model, vae, optimizer, mse_loss, loader, te
 def main():
     '''Main function'''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--epochs', type=int, default=400)
+    parser.add_argument('--epochs', type=int, default=1000)
     parser.add_argument('--batch_size', type=int, default=320)
     parser.add_argument('--num_workers', type=int, default=4) 
     parser.add_argument('--model_name', type=str, default='diffusionpen', help='diffusionpen or wordstylist (previous work)')
@@ -373,7 +373,7 @@ def main():
     parser.add_argument('--emb_dim', type=int, default=320)
     parser.add_argument('--num_heads', type=int, default=4)
     parser.add_argument('--num_res_blocks', type=int, default=1)
-    parser.add_argument('--save_path', type=str, default='./diffusionpen_save_path') 
+    parser.add_argument('--save_path', type=str, default='./diffusionpen_iam_model_path') 
     parser.add_argument('--device', type=str, default='cuda:0')
     parser.add_argument('--wandb_log', type=bool, default=False)
     parser.add_argument('--color', type=bool, default=True)
@@ -385,7 +385,7 @@ def main():
     parser.add_argument('--load_check', type=bool, default=False)
     parser.add_argument('--sampling_word', type=bool, default=False) 
     parser.add_argument('--mix_rate', type=float, default=None)
-    parser.add_argument('--style_path', type=str, default='/path/to/style_model.pth')
+    parser.add_argument('--style_path', type=str, default='./style_models/iam_style_diffusionpen.pth')
     parser.add_argument('--stable_dif_path', type=str, default='./stable-diffusion-v1-5')
     parser.add_argument('--train_mode', type=str, default='train', help='train, sampling, dataset_sampling')
     
@@ -394,7 +394,7 @@ def main():
     print('torch version', torch.__version__)
     
     if args.wandb_log==True:
-        runs = wandb.init(project='DiffusionPen', entity='konnik', name=args.dataset, config=args)
+        runs = wandb.init(project='DiffusionPen', entity='name_entity', name=args.dataset, config=args)
 
         wandb.config.update(args)
     
@@ -410,7 +410,7 @@ def main():
     
     if args.dataset == 'iam':
         print('loading IAM')
-        iam_folder = '/home/konnik/iam_data/words'
+        iam_folder = './iam_data/words'
         myDataset = IAMDataset
         style_classes = 339
         if args.level == 'word':
@@ -427,7 +427,7 @@ def main():
     elif args.dataset == 'gnhk':
         print('loading GNHK')
         myDataset = GNHK_Dataset
-        dataset_folder = '/home/konnik/datasets/GNHK'
+        dataset_folder = 'path/to/GNHK'
         style_classes = 515
         train_transform = transforms.Compose([
                             transforms.ToTensor(),
