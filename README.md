@@ -8,7 +8,7 @@
     |
     <a href="https://drive.google.com/file/d/1BXHPPpjD84mhdYUnnHeXCc-A-3tWhkaR/view?usp=share_link">Poster</a>
     |
-    <a href="https://huggingface.co/konnik/DiffusionPen">Hugging Face 🤗</a>
+    <a href="https://huggingface.co/konnik/DiffusionPen">Hugging Face</a>
       
   </b>
 </p> 
