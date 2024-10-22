@@ -25,7 +25,7 @@
 </p>
 
 
-## 🚀 Model on Hugging Face
+## 🚀 Models on Hugging Face
 
 <p align="center">
   <a href="https://huggingface.co/konnik/DiffusionPen">
