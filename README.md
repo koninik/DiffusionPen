@@ -6,7 +6,9 @@
     |
     <a href="http://www.arxiv.org/abs/2409.06065">ArXiv</a>
     |
-    <a href="">Poster</a>
+    <a href="https://drive.google.com/file/d/1BXHPPpjD84mhdYUnnHeXCc-A-3tWhkaR/view?usp=share_link">Poster</a>
+    |
+    <a href="https://huggingface.co/konnik/DiffusionPen">Hugging Face 🤗</a>
       
   </b>
 </p> 
