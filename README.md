@@ -2,7 +2,6 @@
 
  <p align='center'>
   <b>
-   |
     <a href="https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/11492_ECCV_2024_paper.php">ECCV Paper</a>
     |
     <a href="http://www.arxiv.org/abs/2409.06065">ArXiv</a>
