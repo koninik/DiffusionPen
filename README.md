@@ -25,7 +25,7 @@
 </p>
 
 ## 🚀 Models on Hugging Face 🤗
-You can downlaod the pre-trained models from Hugging Face by clicking here: <a href="https://huggingface.co/konnik/DiffusionPen">https://huggingface.co/konnik/DiffusionPen</a> 
+You can downlaod the pre-trained models from HF by clicking here: <a href="https://huggingface.co/konnik/DiffusionPen">https://huggingface.co/konnik/DiffusionPen</a> 
 
 ## Training from scratch
 
