@@ -33,9 +33,8 @@
   </a>
 </p>
 
-<p align="center">
-  You can explore and use the DiffusionPen model on Hugging Face by clicking here: <a href="https://huggingface.co/konnik/DiffusionPen">this link</a>.
-</p>
+
+You can explore and use the DiffusionPen model on Hugging Face by clicking here: <a href="https://huggingface.co/konnik/DiffusionPen">this link</a>.
 
 ---
 
