@@ -182,7 +182,7 @@ class Diffusion:
     def sample_timesteps(self, n):
         return torch.randint(low=1, high=self.noise_steps, size=(n,))
 
-    def sampling_loader(self, model, test_loader, vae, n, x_text, labels, args, style_extractor, noise_scheduler, mix_rate=None, cfg_scale=3, transform=None, character_classes=None, tokenizer=None, text_encoder=None, clip_model=None):
+    def sampling_loader(self, model, test_loader, vae, n, x_text, labels, args, style_extractor, noise_scheduler, mix_rate=None, cfg_scale=3, transform=None, character_classes=None, tokenizer=None, text_encoder=None):
         model.eval()
         tensor_list = []
         
@@ -252,8 +252,197 @@ class Diffusion:
             x = (x * 255).type(torch.uint8)
         return x
 
+    def sampling(self, model, vae, n, x_text, labels, args, style_extractor, noise_scheduler, mix_rate=None, cfg_scale=3, transform=None, character_classes=None, tokenizer=None, text_encoder=None, run_idx=None):
+        model.eval()
+        tensor_list = []
+        
+        with torch.no_grad():
+            style_images = None
+            text_features = x_text #[x_text]*n
+            #print('text features', text_features.shape)
+            text_features = tokenizer(text_features, padding="max_length", truncation=True, return_tensors="pt", max_length=40).to(args.device)
+            if args.img_feat == True:
+                #pick random image according to specific style
+                with open('./writers_dict_train.json', 'r') as f:
+                    
+                    wr_dict = json.load(f)
+                reverse_wr_dict = {v: k for k, v in wr_dict.items()}
+                
+                #key = reverse_wr_dict[value]
+                with open('./utils/splits_words/iam_train_val.txt', 'r') as f:
+                #with open('./utils/splits_words/iam_test.txt', 'r') as f:
+                    train_data = f.readlines()
+                    train_data = [i.strip().split(',') for i in train_data]
+                    style_featur = []
+                    for label in labels:
+                        #print('label', label)
+                        label_index = label.item()
+    
+                        matching_lines = [line for line in train_data if line[1] == reverse_wr_dict[label_index] and len(line[2])>3]
 
-def train(diffusion, model, ema, ema_model, vae, optimizer, mse_loss, loader, test_loader, num_classes, style_extractor, vocab_size, noise_scheduler, transforms, args, tokenizer=None, text_encoder=None, lr_scheduler=None, clip_model=None):
+                        #pick the first 5 from matching lines
+                        
+                        if len(matching_lines) >= 5:
+                            #five_styles = matching_lines[:5]
+                            #pick first line and repeat
+                            #five_styles = [matching_lines[0]]*5
+                            five_styles = random.sample(matching_lines, 5)
+                            #five_styles = matching_lines_style[:5]
+                        else:
+                            matching_lines = [line for line in train_data if line[1] == reverse_wr_dict[label_index]]
+                            #print('matching lines', matching_lines)
+                            five_styles = matching_lines_style[:5]
+                            five_styles = [matching_lines[0]]*5
+                            #five_styles = random.sample(matching_lines, 5)
+                        print('five_styles', five_styles)
+                        #five_styles = random.sample(matching_lines, 5)
+                        
+                        cor_image_random = random.sample(matching_lines, 1)
+                        #print('cor_image_random', cor_image_random)
+                        #five_styles =[['a05/a05-084/a05-084-04-05.png', '000', 'which'], ['a03/a03-073/a03-073-04-04.png', '000', 'stage'], ['a01/a01-077u/a01-077u-02-02.png', '000', 'cables'], ['a05/a05-089/a05-089-00-05.png', '000', 'debate'], ['a05/a05-048/a05-048-00-00.png', '000', 'Long']] #class id 12
+                        #five_styles = [['b06/b06-071/b06-071-08-06.png', '128', 'Labour'], ['b06/b06-019/b06-019-05-04.png', '128', 'West'], ['b06/b06-071/b06-071-05-03.png', '128', 'could'], ['c06/c06-027/c06-027-01-01.png', '128', 'advantage'], ['c06/c06-076/c06-076-01-05.png', '128', 'never']] #class id 1
+                        
+                        interpol = False
+                        if interpol == True:
+                            label2 = random.randint(0, 339) #random label
+                            matching_lines2 = [line for line in train_data if line[1] == reverse_wr_dict[label2] and len(line[2])>3]
+                            five_styles = random.sample(matching_lines2, 5)
+                        #print('five_styles', five_styles)
+                        #cor_image
+                        fheight, fwidth = 64, 256
+                        root_path = './iam_data/words'
+                        cor_im = False
+                        if cor_im == True:
+                            cor_image = Image.open(os.path.join(root_path, cor_image_random[0][0])).convert('RGB') #['a05/a05-089/a05-089-00-05.png', '000', 'debate']
+                            (cor_image_width, cor_image_height) = cor_image.size
+                            cor_image = cor_image.resize((int(cor_image_width * 64 / cor_image_height), 64))
+                            (cor_image_width, cor_image_height) = cor_image.size
+                            
+                            if cor_image_width < 256:
+                                outImg = ImageOps.pad(cor_image, size=(256, 64), color= "white")#, centering=(0,0)) uncommment to pad right
+                                cor_image = outImg
+                            
+                            else:
+                                #reduce image until width is smaller than 256
+                                while cor_image_width > 256:
+                                    cor_image = image_resize_PIL(cor_image, width=cor_image_width-20)
+                                    (cor_image_width, cor_image_height) = cor_image.size
+                                cor_image = centered_PIL(cor_image, (64, 256), border_value=255.0)
+                                    
+                            cor_im_tens = transform(cor_image).to(args.device)
+                            #print('cor image', cor_im_tens.shape)
+                            cor_im_tens = cor_im_tens.unsqueeze(0)
+                            cor_images = vae.module.encode(cor_im_tens.to(torch.float32)).latent_dist.sample()
+                            cor_images = cor_images * 0.18215
+                            
+                        st_imgs = []
+                        grid_imgs = []
+                        for im_idx, random_f in enumerate(five_styles):
+                            file_path = os.path.join(root_path, random_f[0])
+                            #print('file_path', file_path)
+                            
+                            try:
+                                img_s = Image.open(file_path).convert('RGB')
+                            except ValueError:
+                                # Handle the exception (e.g., print an error message)
+                                print(f"Error loading image from {file_path}")
+                                
+                                # Find a replacement image that is not corrupted
+                                replacement_idx = (im_idx + 1) % 5
+                                replacement_f = five_styles[replacement_idx]
+                                name = replacement_f[0] #.split(',')[1]
+                                replacement_file_path = os.path.join(root_path, name)
+                                img_s = Image.open(replacement_file_path).convert('RGB')
+                                
+                            (img_width, img_height) = img_s.size
+                            img_s = img_s.resize((int(img_width * 64 / img_height), 64))
+                            (img_width, img_height) = img_s.size
+                            
+                            if img_width < 256:
+                                outImg = ImageOps.pad(img_s, size=(256, 64), color= "white")#, centering=(0,0)) uncommment to pad right
+                                img_s = outImg
+                            
+                            else:
+                                #reduce image until width is smaller than 256
+                                while img_width > 256:
+                                    img_s = image_resize_PIL(img_s, width=img_width-20)
+                                    (img_width, img_height) = img_s.size
+                                img_s = centered_PIL(img_s, (64, 256), border_value=255.0)
+                            #make grid of all 5 images
+                            #img_s = img_s.convert('L')
+                            transform_tensor = transforms.ToTensor()
+                            grid_im = transform_tensor(img_s)
+                            grid_imgs += [grid_im]
+                            
+                            img_tens = transform(img_s).to(args.device)#.unsqueeze(0)
+                            st_imgs += [img_tens]
+                            #style_features = style_extractor(style_images).to(args.device)
+                            #img_tensor = img_tensor.to(args.device)
+                        s_imgs = torch.stack(st_imgs).to(args.device)
+                        style_images = torch.cat((style_images, s_imgs)) if style_images is not None else s_imgs
+                        
+                        grid_imgs = torch.stack(grid_imgs).to(args.device)
+                        
+                        
+                        style_images = style_images.to(args.device)
+                        
+                    
+                    #save style images
+                    style_images = style_images.reshape(-1, 3, 64, 256)
+                    style_features = style_extractor(style_images).to(args.device)
+                    # style_features = torch.stack(style_featur, dim=0) #We get [320, 5, 2048]
+                    #print('style features', style_features.shape)
+                    #style_features = style_features.reshape(n, -1).to(args.device)
+            else:
+                style_images = None
+                style_features = None            
+            if args.latent == True:
+                x = torch.randn((n, 4, self.img_size[0] // 8, self.img_size[1] // 8)).to(args.device)
+                if cor_im == True:
+                    x_noise = torch.randn(cor_images.shape).to(args.device)
+                
+                    timesteps = torch.full((cor_images.shape[0],), 999, device=args.device, dtype=torch.long)
+                    
+                    noisy_images = noise_scheduler.add_noise(
+                        cor_images, x_noise, timesteps
+                    )
+                    x = noisy_images
+                 
+            else:
+                x = torch.randn((n, 3, self.img_size[0], self.img_size[1])).to(args.device)
+            
+            #scheduler
+            noise_scheduler.set_timesteps(50)
+            for time in noise_scheduler.timesteps:
+                
+                t_item = time.item()
+                t = (torch.ones(n) * t_item).long().to(args.device)
+
+                with torch.no_grad():
+                    noisy_residual = model(x, t, text_features, labels, original_images=style_images, mix_rate=mix_rate, style_extractor=style_features)
+                    prev_noisy_sample = noise_scheduler.step(noisy_residual, time, x).prev_sample
+                    x = prev_noisy_sample
+
+            
+        model.train()
+        if args.latent==True:
+            latents = 1 / 0.18215 * x
+            image = vae.module.decode(latents).sample
+
+            image = (image / 2 + 0.5).clamp(0, 1)
+            image = image.cpu().permute(0, 2, 3, 1).numpy()
+            
+            image = torch.from_numpy(image)
+            x = image.permute(0, 3, 1, 2)
+
+        else:
+            x = (x.clamp(-1, 1) + 1) / 2
+            x = (x * 255).type(torch.uint8)
+        return x
+
+
+
+def train(diffusion, model, ema, ema_model, vae, optimizer, mse_loss, loader, test_loader, num_classes, style_extractor, vocab_size, noise_scheduler, transforms, args, tokenizer=None, text_encoder=None, lr_scheduler=None):
     model.train()
     loss_meter = AvgMeter()
     print('Training started....')
@@ -345,7 +534,7 @@ def train(diffusion, model, ema, ema_model, vae, optimizer, mse_loss, loader, te
                     sampled_ema = save_images(ema_sampled_images, os.path.join(args.save_path, 'images', f"{x_text}_{epoch_n}_ema.jpg"), args)
             else:
                 #generates a batch of words
-                ema_sampled_images = diffusion.sampling_loader(ema_model, test_loader, vae, n=n, x_text=None, labels=labels, args=args, style_extractor=style_extractor, noise_scheduler=noise_scheduler, transform=transforms, character_classes=None, tokenizer=tokenizer, text_encoder=text_encoder, clip_model=clip_model)
+                ema_sampled_images = diffusion.sampling_loader(ema_model, test_loader, vae, n=n, x_text=None, labels=labels, args=args, style_extractor=style_extractor, noise_scheduler=noise_scheduler, transform=transforms, character_classes=None, tokenizer=tokenizer, text_encoder=text_encoder)
                 epoch_n = epoch 
                 sampled_ema = save_images(ema_sampled_images, os.path.join(args.save_path, 'images', f"{epoch_n}_ema.jpg"), args)
         
@@ -387,7 +576,8 @@ def main():
     parser.add_argument('--mix_rate', type=float, default=None)
     parser.add_argument('--style_path', type=str, default='/path/to/style_model.pth')
     parser.add_argument('--stable_dif_path', type=str, default='./stable-diffusion-v1-5')
-    parser.add_argument('--train_mode', type=str, default='train', help='train, sampling, dataset_sampling')
+    parser.add_argument('--train_mode', type=str, default='train', help='train, sampling')
+    parser.add_argument('--sampling_mode', type=str, default='single_sampling', help='single_sampling (generate single image), paragraph (generate paragraph)')
     
     args = parser.parse_args()
     
@@ -523,8 +713,207 @@ def main():
     feature_extractor.eval()
     
     if args.train_mode == 'train':
-        train(diffusion, unet, ema, ema_model, vae, optimizer, mse_loss, train_loader, test_loader, style_classes, feature_extractor, vocab_size, ddim, transform, args, tokenizer=tokenizer, text_encoder=text_encoder, lr_scheduler=lr_scheduler, clip_model=None)
+        train(diffusion, unet, ema, ema_model, vae, optimizer, mse_loss, train_loader, test_loader, style_classes, feature_extractor, vocab_size, ddim, transform, args, tokenizer=tokenizer, text_encoder=text_encoder, lr_scheduler=lr_scheduler)
+    
+    elif args.train_mode == 'sampling':
+        
+        print('Sampling started....')
+        
+        unet.load_state_dict(torch.load(f'{args.save_path}/models/ckpt.pt', map_location=args.device))
+        print('unet loaded')
+        unet.eval()
+        
+        ema = EMA(0.995)
+        ema_model = copy.deepcopy(unet).eval().requires_grad_(False)
+        ema_model.load_state_dict(torch.load(f'{args.save_path}/models/ema_ckpt.pt'))
+        ema_model.eval()
+        
+        if args.sampling_mode == 'single_sampling':
+            x_text = ['text', 'word']
+            for x_text in x_text:
+                print('Word:', x_text)
+                s = random.randint(0, 339) #index for style class
+                
+                print('style', s)
+                labels = torch.tensor([s]).long().to(args.device)
+                ema_sampled_images = diffusion.sampling(ema_model, vae, n=len(labels), x_text=x_text, labels=labels, args=args, style_extractor=feature_extractor, noise_scheduler=ddim, transform=transform, character_classes=None, tokenizer=tokenizer, text_encoder=text_encoder, run_idx=None)  
+                save_single_images(ema_sampled_images, os.path.join(f'./image_samples/', f'{x_text}_style_{s}.png'), args)
 
+        
+        elif args.sampling_mode == 'paragraph':
+            print('Sampling paragraph')
+            #make the code to generate lines
+            lines = 'In this work , we focus on style variation . We present a novel method to control the style of the text . Our method is able to mimic various writing styles .'
+            fakes= []
+            gap = np.ones((64, 16))
+            max_line_width = 900
+            total_char_count = 0
+            avg_char_width = 0
+            current_line_width = 0
+            longest_word_length = max(len(word) for word in lines.strip().split(' '))
+            #print('longest_word_length', longest_word_length)
+            #s = random.randint(0, 339)#.long().to(args.device)
+            #s = random.randint(0, 161)#.long().to(args.device)
+            s = 12 #25 #129 #201
+            for word in lines.strip().split(' '):
+                print('Word:', word)
+                print('Style:', s)
+                labels = torch.tensor([s]).long().to(args.device)
+                ema_sampled_images = diffusion.sampling(ema_model, vae, n=len(labels), x_text=word, labels=labels, args=args, style_extractor=feature_extractor, noise_scheduler=ddim, transform=transform, character_classes=None, tokenizer=tokenizer, text_encoder=text_encoder, clip_model=None, run_idx=None)  
+                #print('ema_sampled_images', ema_sampled_images.shape)
+                image = ema_sampled_images.squeeze(0)
+                
+                im = torchvision.transforms.ToPILImage()(image)
+                #reshape to height 32
+                im = im.convert("L")
+                #save im
+                
+                #if len(word) < 4:
+                    
+                im = crop_whitespace_width(im)
+                
+                im = Image.fromarray(im)
+                if len(word) == longest_word_length:
+                    max_word_length_width = im.width
+                    print('max_word_length_width', max_word_length_width)
+                #im.save(f'./_REBUTTAL/{word}.png')
+                # Calculate aspect ratio
+                aspect_ratio = im.width / im.height
+                
+                # # Calculate target width to maintain aspect ratio
+                #target_width = int(32 * aspect_ratio)
+                
+                # Resize while maintaining aspect ratio
+                #resized_img = im.resize((target_width, 32))
+                # total_char_count += len(word)
+                # avg_char_width += target_width
+                im = np.array(im)
+                #im = np.array(resized_img)
+                
+                fakes.append(im)
+            
+            # Calculate the scaling factor based on the longest word
+            #find the average character width of the max length word
+            
+            avg_char_width = max_word_length_width / longest_word_length
+            print('avg_char_width', avg_char_width)
+            #scaling_factor = avg_char_width / (32 * aspect_ratio)  # Aspect ratio of an average character
+
+            # Scale and pad each word
+            scaled_padded_words = []
+            max_height = 64  # Defined max height for all images
+            
+            for word, img in zip(lines.strip().split(' '), fakes):
+                
+                img_pil = Image.fromarray(img)
+                as_ratio = img_pil.width / img_pil.height
+                #scaled_width = int(scaling_factor * len(word))#) * as_ratio * max_height)
+                scaled_width = int(avg_char_width * len(word))
+                
+                scaled_img = img_pil.resize((scaled_width, int(scaled_width / as_ratio)))
+                print(f'Word {word} - scaled_img {scaled_img.size}')
+                # Padding
+                #if word is in punctuation:
+                if word in punctuation:
+                    #rescale to height 10
+                    w_punc = scaled_img.width
+                    h_punc = scaled_img.height
+                    as_ratio_punct = w_punc / h_punc
+                    if word == '.':
+                        scaled_img = scaled_img.resize((int(5 * as_ratio_punct), 5))
+                    else:
+                        scaled_img = scaled_img.resize((int(13 * as_ratio_punct), 13))
+                    #pad on top and leave the image in the bottom
+                    padding_bottom = 10
+                    padding_top = max_height - scaled_img.height - padding_bottom# All padding goes on top
+                      # No padding at the bottom
+
+                    # Apply padding
+                    padded_img = np.pad(scaled_img, ((padding_top, padding_bottom), (0, 0)), mode='constant', constant_values=255)
+                else:
+                    if scaled_img.height < max_height:
+                        padding = (max_height - scaled_img.height) // 2
+                        #print(f'Word {word} - padding: {padding}')
+                        padded_img = np.pad(scaled_img, ((padding, max_height - scaled_img.height - padding), (0, 0)), mode='constant', constant_values=255)
+                    else:
+                        #resize to max height while maintaining aspect ratio
+                        #ar = scaled_img.width / scaled_img.height
+                        
+                        scaled_img = scaled_img.resize((int(max_height * as_ratio) - 4, max_height - 4))
+                        padding = (max_height - scaled_img.height) // 2
+                        #print(f'Word {word} - padding: {padding}')
+                        padded_img = np.pad(scaled_img, ((padding, max_height - scaled_img.height - padding), (0, 0)), mode='constant', constant_values=255)
+                        
+                    #padded_img = np.array(scaled_img)
+                #print('padded_img', padded_img.shape)
+                scaled_padded_words.append(padded_img)
+
+            # Create a gap array (white space)
+            height = 64  # Fixed height for all images
+            gap = np.ones((height, 16), dtype=np.uint8) * 255  # White gap
+
+            # Concatenate images with gaps
+            sentence_img = gap  # Start with a gap
+            lines = [] 
+            line_img = gap
+            # Concatenate images with gaps
+            '''
+            sentence_img = gap  # Start with a gap
+            for img in scaled_padded_words:
+                #print('img', img.shape)
+                sentence_img = np.concatenate((sentence_img, img, gap), axis=1)
+            '''
+            
+            for img in scaled_padded_words:
+                img_width = img.shape[1] + gap.shape[1]
+
+                if current_line_width + img_width < max_line_width:
+                    # Add the image to the current line
+                    if line_img.shape[0] == 0:
+                        line_img = np.ones((height, 0), dtype=np.uint8) * 255  # Start a new line
+                    line_img = np.concatenate((line_img, img, gap), axis=1)
+                    current_line_width += img_width #+ gap.shape[1]
+                    #print('current_line_width if', current_line_width)
+                    # Check if adding this image exceeds the max line width
+                else:
+                    # Pad the current line with white space to max_line_width
+                    remaining_width = max_line_width - current_line_width
+                    line_img = np.concatenate((line_img, np.ones((height, remaining_width), dtype=np.uint8) * 255), axis=1)
+                    lines.append(line_img)
+
+                    # Start a new line with the current word
+                    line_img = np.concatenate((gap, img, gap), axis=1)
+                    current_line_width = img_width #+ 2 * gap.shape[1]
+                    #print('current_line_width else', current_line_width)
+            # Add the last line to the lines list
+            if current_line_width > 0:
+                # Pad the last line to max_line_width
+                remaining_width = max_line_width - current_line_width
+                line_img = np.concatenate((line_img, np.ones((height, remaining_width), dtype=np.uint8) * 255), axis=1)
+                lines.append(line_img)
+                
+            # # Concatenate all lines to form a paragraph, pad them if necessary
+            # max_height = max([line.shape[0] for line in lines])
+            # paragraph_img = np.ones((0, max_line_width), dtype=np.uint8) * 255
+            # for line in lines:
+            #     if line.shape[0] < max_height:
+            #         padding = (max_height - line.shape[0]) // 2
+            #         line = np.pad(line, ((padding, max_height - line.shape[0] - padding), (0, 0)), mode='constant', constant_values=255)
+                
+            #     #print the shapes
+            #     print('line shape', line.shape)
+            #print('paragraph shape', paragraph_img.shape)
+            paragraph_img = np.concatenate((lines), axis=0)
+
+                
+            paragraph_image = Image.fromarray(paragraph_img)
+            paragraph_image = paragraph_image.convert("L")    
+            
+            #line string without .
+            #save_name = lines.replace('.', '')
+            paragraph_image.save(f'paragraph_style_{s}.png')
+
+    
 if __name__ == "__main__":
     main()
   
