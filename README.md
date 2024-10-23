@@ -35,29 +35,26 @@ You can download the pre-processed dataset and model weights from HF here: <a hr
 - Style weights for the style encoder (also DiffusionPen-class and DiffusionPen-triplet) in <a href="https://huggingface.co/konnik/DiffusionPen/tree/main/style_models">style_models</a>
 - DiffusionPen weights for IAM in <a href="https://huggingface.co/konnik/DiffusionPen/tree/main/diffusionpen_iam_model_path/models">diffusionpen_iam_model_path/models</a>
 
-Place the folders 📁 `saved_iam_data`, 📁 `style_models`, and 📁 `diffusionpen_iam_model_path` in the main code directory.
+Place the folders 📁`saved_iam_data`, 📁`style_models`, and 📁`diffusionpen_iam_model_path` in the main code directory.
 
-For VAE encoder-decoder and DDIM we use <a href="https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5">stable-diffusion-v1-5/stable-diffusion-v1-5</a>.
+For VAE encoder-decoder and DDIM we use <a href="https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5">stable-diffusion-v1-5</a>.
 
-## Training from scratch
-
-To train the diffusion model run:
-```
-python train.py 
-```
-
-## Sampling - Regenerating IAM
-
-If you want to regenerate the full IAM training set you can run:
-```
-python 
-```
-
-## Sampling - Single image
-
-If you want to generate a single word with a random style you can run:
+## 🧪 Sampling using DiffusionPen
 ```
 python sampling.py 
+```
+
+## 🏋️‍♂️ Train with Your Own Data
+
+If you'd like to train DiffusionPen using your own data, simply adjust the data loader to fit your dataset and follow these 2 steps:
+
+1. Train the Style Encoder:
+```
+python train.py --epochs 1000 --model_name diffusionpen --save_path /new/path/to/save/models --style_path /new/path/to/style/model.pth --stable_dif_path ./stable-diffusion-v1-5
+```
+2. Train DiffusionPen:
+```
+python train.py --epochs 1000 --model_name diffusionpen --save_path /new/path/to/save/models --style_path /new/path/to/style/model.pth --stable_dif_path ./stable-diffusion-v1-5
 ```
 
 ---
