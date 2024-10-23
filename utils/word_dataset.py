@@ -96,21 +96,19 @@ class WordLineDataset(Dataset):
                 self.stopwords.append(line.strip().split(','))
             self.stopwords = self.stopwords[0]
         
-        save_path = './IAM_htr_PIL_NEW_PADDING_augm'
-        #save_path = './NEW_IAM_MIXED'
-        #save_path = './IAM_htr_PIL_no_augment'
-        #save_path = './IAM_FINAL'
+        save_path = './saved_iam_data'
+        
         if os.path.exists(save_path) is False:
             os.makedirs(save_path, exist_ok=True)
         save_file = '{}/{}_{}_{}.pt'.format(save_path, self.subset, self.segmentation_level, self.setname) #dataset_path + '/' + set + '_' + level + '_IAM.pt'
-        '''
+        
         if isfile(save_file) is False:
             data = self.main_loader(self.subset, self.segmentation_level)
             torch.save(data, save_file)   #Uncomment this in 'release' version
         else:
             data = torch.load(save_file)
-        '''
-        data = self.main_loader(self.subset, self.segmentation_level)
+        
+        #data = self.main_loader(self.subset, self.segmentation_level)
         self.data = data
         #print('data', self.data)
         self.initial_writer_ids = [d[2] for d in data]
@@ -153,7 +151,7 @@ class WordLineDataset(Dataset):
         font_size = max_font_size
         while text_width > target_width or text_height > target_height:
             font_size -= 1
-            font = ImageFont.truetype('/home/konnik/CVPR_2024/Roboto-Regular.ttf', font_size)
+            font = ImageFont.truetype('./Roboto-Regular.ttf', font_size)
             _,_,text_width, text_height = font.getbbox(word)
             
         # Create a white image with the target dimensions
@@ -210,7 +208,7 @@ class WordLineDataset(Dataset):
 
         while True:
             # Load the font
-            font = ImageFont.truetype('/home/konnik/CVPR_2024/Roboto-Regular.ttf', font_size)
+            font = ImageFont.truetype('./Roboto-Regular.ttf', font_size)
 
             # Get the size of the text with the current font
             text_width, text_height = d.textsize(word, font=font)
