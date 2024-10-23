@@ -1246,10 +1246,5 @@ def main():
         print('finished training')
     
     
-   
-    
-    
-
-    
 if __name__ == '__main__':
     main()
