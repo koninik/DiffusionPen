@@ -15,11 +15,11 @@ class IAMDataset(WordLineDataset):
         self.valset_file = '{}/{}/set_split/validationset1.txt'.format(self.basefolder, self.setname)
         self.testset_file = '{}/{}/set_split/testset.txt'.format(self.basefolder, self.setname)
         self.line_file = '{}/ascii/lines.txt'.format(self.basefolder, self.setname)
-        self.word_file = '/home/konnik/iam_data/ascii/words.txt'.format(self.basefolder, self.setname)
+        self.word_file = './iam_data/ascii/words.txt'.format(self.basefolder, self.setname)
         #self.word_path = '{}/words'.format(self.basefolder, self.setname)
         self.word_path = self.basefolder
         self.line_path = '{}/lines'.format(self.basefolder, self.setname)
-        self.forms = '/home/konnik/iam_data/ascii/forms.txt'
+        self.forms = './iam_data/ascii/forms.txt'
         self.tokenizer = tokenizer
         self.text_encoder = text_encoder
         self.feat_extractor = feat_extractor
@@ -48,14 +48,14 @@ class IAMDataset(WordLineDataset):
         def gather_iam_info(self, set='train', level='word'):
             if subset == 'train':
                 #valid_set = np.loadtxt(self.trainset_file, dtype=str)
-                valid_set = np.loadtxt('/home/konnik/CVPR_2024/utils/PIL_u/aachen_iam_split/train_val.uttlist', dtype=str)
+                valid_set = np.loadtxt('./aachen_iam_split/train_val.uttlist', dtype=str)
                 #print(valid_set)
             elif subset == 'val':
                 #valid_set = np.loadtxt(self.valset_file, dtype=str)
-                valid_set = np.loadtxt('/home/konnik/CVPR_2024/utils/PIL_u/aachen_iam_split/validation.uttlist', dtype=str)
+                valid_set = np.loadtxt('./aachen_iam_split/validation.uttlist', dtype=str)
             elif subset == 'test':
                 #valid_set = np.loadtxt(self.testset_file, dtype=str)
-                valid_set = np.loadtxt('/home/konnik/CVPR_2024/utils/PIL_u/aachen_iam_split/test.uttlist', dtype=str)
+                valid_set = np.loadtxt('./aachen_iam_split/test.uttlist', dtype=str)
             else:
                 raise ValueError
             if level == 'word':
@@ -71,7 +71,7 @@ class IAMDataset(WordLineDataset):
             gt = []
             form_writer_dict = {}
             
-            dict_path = f'/home/konnik/CVPR_2024/writers_dict_{subset}.json'
+            dict_path = f'./writers_dict_{subset}.json'
             #open dict file
             with open(dict_path, 'r') as f:
                 wr_dict = json.load(f)
