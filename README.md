@@ -16,7 +16,9 @@
 
 
 ## 📢 Introduction
-
+- We introduce DiffusionPen, a few-shot diffusion model developed for generating stylized handwritten text. By using just a few reference samples (as few as five), it learns a writer’s unique handwriting style and generates new text that imitates that style.
+- DiffusionPen effectively captures both seen and unseen handwriting styles with fewer examples. This is achieved through a style extraction module that combines metric learning and classification, allowing for greater flexibility in representing various writing styles.
+- We evaluated DiffusionPen on IAM and GNHK (only qualitative) handwriting datasets, demonstrating its ability to generate diverse and realistic handwritten text. The generated data closely matches the real handwriting distribution, leading to enhancement in Handwriting Text Recognition (HTR) systems when used for training. 
 
 <p align="center">
   <img src="imgs/diffusionpen.png" alt="Overview of the proposed DiffusionPen" style="width: 60%;">
