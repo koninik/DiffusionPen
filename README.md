@@ -52,7 +52,7 @@ If you'd like to train DiffusionPen using your own data, simply adjust the data 
 
 1. Train the Style Encoder:
 ```
-python train.py --epochs 1000 --model_name diffusionpen --save_path /new/path/to/save/models --style_path /new/path/to/style/model.pth --stable_dif_path ./stable-diffusion-v1-5
+python style_encoder_train.py
 ```
 2. Train DiffusionPen:
 ```
