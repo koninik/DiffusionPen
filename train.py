@@ -780,13 +780,6 @@ def main():
                 # Calculate aspect ratio
                 aspect_ratio = im.width / im.height
                 
-                # # Calculate target width to maintain aspect ratio
-                #target_width = int(32 * aspect_ratio)
-                
-                # Resize while maintaining aspect ratio
-                #resized_img = im.resize((target_width, 32))
-                # total_char_count += len(word)
-                # avg_char_width += target_width
                 im = np.array(im)
                 #im = np.array(resized_img)
                 
@@ -909,8 +902,6 @@ def main():
             paragraph_image = Image.fromarray(paragraph_img)
             paragraph_image = paragraph_image.convert("L")    
             
-            #line string without .
-            #save_name = lines.replace('.', '')
             paragraph_image.save(f'paragraph_style_{s}.png')
 
     
