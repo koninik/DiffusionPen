@@ -41,8 +41,15 @@ For VAE encoder-decoder and DDIM we use <a href="https://huggingface.co/stable-d
 
 
 ## 🧪 Sampling using DiffusionPen
+
+For single image sampling run
 ```
-python sampling.py 
+python train.py --save_path ./diffusionpen_iam_model_path --style_path ./style_models/iam_style_diffusionpen.pth --train_mode sampling --sampling_mode single_sampling
+```
+
+For paragraph sampling run
+```
+python train.py --save_path ./diffusionpen_iam_model_path --style_path ./style_models/iam_style_diffusionpen.pth --train_mode sampling --sampling_mode paragraph
 ```
 
 
