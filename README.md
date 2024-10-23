@@ -26,8 +26,16 @@
   Overview of the proposed DiffusionPen
 </p>
 
-## 🚀 Models on Hugging Face 🤗
-You can download the pre-trained models from HF by clicking here: <a href="https://huggingface.co/konnik/DiffusionPen">https://huggingface.co/konnik/DiffusionPen</a> 
+## 🚀 Download Dataset & Models from Hugging Face 🤗
+You can download the pre-processed dataset and model weights from HF here: <a href="https://huggingface.co/konnik/DiffusionPen">https://huggingface.co/konnik/DiffusionPen</a> 
+
+- IAM pre-processed dataset in .pt for direct loading in <a href="https://huggingface.co/konnik/DiffusionPen/tree/main/saved_iam_data">saved_iam_data</a>
+- Style weights for the style encoder (also DiffusionPen-class and DiffusionPen-triplet) in <a href="https://huggingface.co/konnik/DiffusionPen/tree/main/style_models">style_models</a>
+- DiffusionPen weights for IAM in <a href="https://huggingface.co/konnik/DiffusionPen/tree/main/diffusionpen_iam_model_path/models">diffusionpen_iam_model_path/models</a>
+
+Place the folders 📁 `saved_iam_data`, 📁 `style_models`, and 📁 `diffusionpen_iam_model_path` in the main code directory.
+
+For VAE encoder-decoder and DDIM we use <a href="https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5">stable-diffusion-v1-5/stable-diffusion-v1-5</a>.
 
 ## Training from scratch
 
