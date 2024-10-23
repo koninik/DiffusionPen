@@ -39,10 +39,12 @@ Place the folders 📁`saved_iam_data`, 📁`style_models`, and 📁`diffusionpe
 
 For VAE encoder-decoder and DDIM we use <a href="https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5">stable-diffusion-v1-5</a>.
 
+
 ## 🧪 Sampling using DiffusionPen
 ```
 python sampling.py 
 ```
+
 
 ## 🏋️‍♂️ Train with Your Own Data
 
